@@ -1,8 +1,8 @@
 package com.tech.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tech.utils.WebUtils;
 import com.tech.dto.ResponseResult;
+import com.tech.utils.WebUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -17,9 +17,9 @@ import java.io.IOException;
 public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        ResponseResult result = new ResponseResult(HttpStatus.UNAUTHORIZED.value(), "Authentication fail");
+        ResponseResult result = new ResponseResult(HttpStatus.UNAUTHORIZED.value(),authException.getMessage());
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(result);
-        WebUtils.renderString(response, json);
+        WebUtils.renderString(response,json);
     }
 }

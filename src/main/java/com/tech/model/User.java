@@ -6,6 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
@@ -13,16 +14,16 @@ import javax.validation.constraints.NotNull;
 @Table(name = "tb_user")
 public class User extends BaseEntity {
 
-    @NotNull(message = "username must be provided")
+    @NotBlank(message = "username must be provided")
     @Column(name = "username", unique = true, nullable = false, columnDefinition = "VARCHAR(32)")
     private String username;
 
     @Email(message = "must be a valid email")
-    @NotNull(message = "email must be provided")
+    @NotBlank(message = "email must be provided")
     @Column(name = "email", unique = true, nullable = false, columnDefinition = "VARCHAR(32)")
     private String email;
 
-    @NotNull(message = "password must be provided")
+    @NotBlank(message = "password must be provided")
     @Column(name = "password", nullable = false)
     private String password;
 }

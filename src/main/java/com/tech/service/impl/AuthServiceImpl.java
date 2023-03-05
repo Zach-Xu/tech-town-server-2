@@ -1,6 +1,7 @@
 package com.tech.service.impl;
 
-import com.tech.dto.UserResponse;
+import com.tech.UserResponse;
+import com.tech.exception.AuthException;
 import com.tech.model.LoginUser;
 import com.tech.model.User;
 import com.tech.repo.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,14 +42,14 @@ public class AuthServiceImpl implements AuthService {
         Authentication authenticate = authenticationManager.authenticate(authToken);
 
         if (Objects.isNull(authenticate)) {
-            throw new RuntimeException("Login fail");
+            throw new AuthException("Login fail");
         }
 
         // Authenticate successful
-        LoginUser loginUser = (LoginUser)authenticate.getPrincipal();
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
 
         // Generate Jwt
-        User userDB =loginUser.getUser();
+        User userDB = loginUser.getUser();
         String token = JwtUtils.createJWT(userDB);
 
         // Prepare DTO for response
@@ -66,8 +68,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseResult register(User user) {
         Optional<User> userDB = userRepository.findByEmail(user.getEmail());
-        userDB.ifPresent( u -> {
-            throw  new RuntimeException("email: " + u.getEmail() + " already exists");
+        userDB.ifPresent(u -> {
+            throw new RuntimeException("email: " + u.getEmail() + " already exists");
         });
 
         // encode password
@@ -80,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
 
         // Prepare DTO for response
         UserResponse userResponse = new UserResponse();
-        BeanUtils.copyProperties(userDB, userResponse);
+        BeanUtils.copyProperties(newUser, userResponse);
 
         Map<String, Object> RegisterResponseData = new HashMap<>();
         RegisterResponseData.put("user", userResponse);
@@ -94,4 +96,16 @@ public class AuthServiceImpl implements AuthService {
     public ResponseResult logout() {
         return null;
     }
+
+    @Override
+    public ResponseResult getTokenUser() {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Prepare DTO for response
+        UserResponse userResponse = new UserResponse();
+        BeanUtils.copyProperties(loginUser, userResponse);
+        return new ResponseResult(200, "Get user info successful", userResponse);
+    }
+
+
 }

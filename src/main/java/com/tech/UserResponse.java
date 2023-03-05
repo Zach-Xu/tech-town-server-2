@@ -1,4 +1,4 @@
-package com.tech.dto;
+package com.tech;
 
 
 import lombok.Data;

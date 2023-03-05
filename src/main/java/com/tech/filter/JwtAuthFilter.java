@@ -1,15 +1,18 @@
 package com.tech.filter;
 
+import com.tech.exception.AuthException;
 import com.tech.model.User;
 import com.tech.repo.UserRepository;
 import com.tech.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -23,6 +26,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
     UserRepository userRepository;
+
+
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -41,7 +50,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Claims claims = JwtUtils.parseJWT(token);
             userEmail = claims.getSubject();
         } catch (Exception e) {
-            throw new RuntimeException("Token invalid");
+            resolver.resolveException(request, response, null, new AuthException("Token invalid"));
+            return;
         }
 
         Optional<User> user = userRepository.findByEmail(userEmail);

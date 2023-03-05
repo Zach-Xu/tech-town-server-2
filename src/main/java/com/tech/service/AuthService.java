@@ -11,4 +11,6 @@ public interface AuthService {
 
     ResponseResult logout();
 
+    ResponseResult getTokenUser();
+
 }

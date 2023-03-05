@@ -1,16 +1,14 @@
 package com.tech.controller;
 
 
+
 import com.tech.model.User;
 import com.tech.service.AuthService;
 import com.tech.utils.WebUtils;
 import com.tech.dto.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -35,5 +33,9 @@ public class AuthController {
         return  authService.register(user);
     }
 
+    @GetMapping("/refresh")
+    public ResponseResult refresh(){
+        return authService.getTokenUser();
+    }
 
 }

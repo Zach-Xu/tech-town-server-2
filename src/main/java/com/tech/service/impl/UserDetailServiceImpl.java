@@ -1,5 +1,6 @@
 package com.tech.service.impl;
 
+import com.tech.exception.AuthException;
 import com.tech.model.LoginUser;
 import com.tech.model.User;
 import com.tech.repo.UserRepository;
@@ -20,7 +21,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByEmail(email);
-        LoginUser loginUser = user.map(LoginUser::new).orElseThrow(()-> new RuntimeException("Incorrect email or password"));
+        LoginUser loginUser = user.map(LoginUser::new).orElseThrow(()-> new UsernameNotFoundException("Incorrect email or password"));
         return loginUser;
     }
 }
