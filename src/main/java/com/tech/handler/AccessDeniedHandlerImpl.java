@@ -1,7 +1,7 @@
 package com.tech.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 import com.tech.utils.WebUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;

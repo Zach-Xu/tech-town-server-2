@@ -1,13 +1,13 @@
 package com.tech.service.impl;
 
-import com.tech.UserResponse;
+import com.tech.vo.UserResponse;
 import com.tech.exception.AuthException;
 import com.tech.model.LoginUser;
 import com.tech.model.User;
 import com.tech.repo.UserRepository;
 import com.tech.service.AuthService;
 import com.tech.utils.JwtUtils;
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;

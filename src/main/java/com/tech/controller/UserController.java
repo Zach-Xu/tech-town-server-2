@@ -1,6 +1,6 @@
 package com.tech.controller;
 
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 

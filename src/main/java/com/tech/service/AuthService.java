@@ -1,7 +1,7 @@
 package com.tech.service;
 
 import com.tech.model.User;
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 
 public interface AuthService {
 

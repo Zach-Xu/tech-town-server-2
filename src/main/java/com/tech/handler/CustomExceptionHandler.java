@@ -1,7 +1,7 @@
 package com.tech.handler;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 import com.tech.exception.AuthException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

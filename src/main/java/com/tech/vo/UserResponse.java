@@ -1,4 +1,4 @@
-package com.tech;
+package com.tech.vo;
 
 
 import lombok.Data;

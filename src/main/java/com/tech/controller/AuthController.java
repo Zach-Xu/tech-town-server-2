@@ -5,7 +5,7 @@ package com.tech.controller;
 import com.tech.model.User;
 import com.tech.service.AuthService;
 import com.tech.utils.WebUtils;
-import com.tech.dto.ResponseResult;
+import com.tech.vo.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;

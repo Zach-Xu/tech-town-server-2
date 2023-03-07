@@ -17,7 +17,7 @@ public class Question extends BaseEntity {
     @Column( name ="title", nullable = false, columnDefinition = "text")
     private String title;
 
-    @Column( name ="content", nullable = false, columnDefinition = "text")
+    @Column( name ="content", nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
     @ManyToOne

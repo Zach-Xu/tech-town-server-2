@@ -1,4 +1,4 @@
-package com.tech.dto;
+package com.tech.vo;
 
 public class ResponseResult <T>{
     /**

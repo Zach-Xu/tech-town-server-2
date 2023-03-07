@@ -1,9 +1,14 @@
 package com.tech.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 @Table(name = "tb_tag")
 @Entity(name = "Tag")
+@Getter
+@Setter
 public class Tag extends BaseEntity {
 
     @Column(name = "tag_name", nullable = false, columnDefinition = "text")
@@ -12,7 +17,9 @@ public class Tag extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne
+    @ManyToOne(
+            cascade = CascadeType.PERSIST
+    )
     @JoinColumn(
             name = "question_id",
             nullable = false,
@@ -20,6 +27,7 @@ public class Tag extends BaseEntity {
             foreignKey = @ForeignKey(
                     name = "fk_tag_question"
             )
+
     )
     private Question question;
 }

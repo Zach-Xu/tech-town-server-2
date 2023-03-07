@@ -6,13 +6,13 @@ import com.tech.handler.AuthenticationEntryPointImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +39,7 @@ public class SecurityConfig {
 
     @Autowired
     UserDetailsService userDetailsService;
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -47,6 +48,7 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
+
     @Autowired
     AuthenticationEntryPointImpl authenticationEntryPoint;
     @Autowired
@@ -58,7 +60,10 @@ public class SecurityConfig {
                 // SecurityContext is not needed
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests().antMatchers("/api/auth/login","/api/auth/register").anonymous()
+                .authorizeRequests().antMatchers("/api/auth/login",
+                        "/api/auth/register").anonymous().
+                and()
+                .authorizeRequests().antMatchers(HttpMethod.POST, "/api/questions", "/api/questions/**").anonymous()
                 .anyRequest().authenticated();
 
         // allow cross-origin
