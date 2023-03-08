@@ -1,5 +1,6 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,5 +30,6 @@ public class Tag extends BaseEntity {
             )
 
     )
+    @JsonIgnore
     private Question question;
 }

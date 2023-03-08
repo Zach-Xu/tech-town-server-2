@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.annotation.Resource;
 
 @Configuration
 public class SecurityConfig {
@@ -63,7 +62,7 @@ public class SecurityConfig {
                 .authorizeRequests().antMatchers("/api/auth/login",
                         "/api/auth/register").anonymous().
                 and()
-                .authorizeRequests().antMatchers(HttpMethod.POST, "/api/questions", "/api/questions/**").anonymous()
+                .authorizeRequests().antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**").anonymous()
                 .anyRequest().authenticated();
 
         // allow cross-origin

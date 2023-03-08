@@ -1,5 +1,6 @@
 package com.tech.controller;
 
+import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
 import com.tech.service.QuestionService;
@@ -18,7 +19,7 @@ public class QuestionController {
     private QuestionService questionService;
 
     @GetMapping
-    public ResponseResult<List<Question>> getAllQuestions(){
+    public ResponseResult<List<QuestionResponse>> getAllQuestions(){
         return questionService.getAllQuestions();
     }
 
