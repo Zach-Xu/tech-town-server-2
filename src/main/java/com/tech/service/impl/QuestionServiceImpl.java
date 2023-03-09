@@ -1,15 +1,14 @@
 package com.tech.service.impl;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
-import com.tech.dto.QuestionDTO;
 import com.tech.exception.AuthException;
+import com.tech.exception.NotFoundException;
 import com.tech.model.User;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
 import com.tech.repo.QuestionRepository;
 import com.tech.service.QuestionService;
-import com.tech.vo.TagResponse;
 import com.tech.vo.UserResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class QuestionServiceImpl implements QuestionService {
@@ -51,15 +51,6 @@ public class QuestionServiceImpl implements QuestionService {
             // set the number of answers instead of returning the entire answer object
             questionResponse.setNumOfAnswers(question.getAnswers().size());
 
-            List<TagResponse> tagResponseList = new ArrayList<>();
-            // Iterates over each tag object and converts it into a TagResponse object
-            question.getTags().forEach(tag -> {
-                TagResponse tagResponse = new TagResponse();
-                BeanUtils.copyProperties(tag, tagResponse);
-                tagResponseList.add(tagResponse);
-            });
-
-            questionResponse.setTags(tagResponseList);
             // Add converted question view objects to the list
             questionResponseList.add(questionResponse);
         });
@@ -83,5 +74,13 @@ public class QuestionServiceImpl implements QuestionService {
         question.getTags().forEach(tag -> tag.setQuestion(question));
         questionRepository.save(question);
         return new ResponseResult(HTTPResponse.SC_CREATED, "created question successfully", question);
+    }
+
+    @Override
+    public ResponseResult<Question> getQuestion(Long questionId) {
+        Optional<Question> question = questionRepository.findById(questionId);
+        return question.map(q -> new ResponseResult(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", q))
+                .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
+
     }
 }

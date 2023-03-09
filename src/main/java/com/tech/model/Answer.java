@@ -1,5 +1,8 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -20,6 +23,7 @@ public class Answer extends BaseEntity {
                     name = "fk_answer_question"
             )
     )
+    @JsonBackReference(value = "question-answer")
     private Question question;
 
     @ManyToOne
@@ -31,6 +35,7 @@ public class Answer extends BaseEntity {
                     name = "fk_answer_user"
             )
     )
+    @JsonIgnoreProperties({"password", "answers"})
     private User user;
 
 

@@ -28,5 +28,10 @@ public class QuestionController {
         return questionService.createQuestion(question);
     }
 
+    @GetMapping("/{id}")
+    public ResponseResult<Question> getQuestion(@PathVariable("id") Long questionId){
+        return questionService.getQuestion(questionId);
+    }
+
 
 }

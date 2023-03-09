@@ -1,5 +1,6 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +31,6 @@ public class Tag extends BaseEntity {
             )
 
     )
-    @JsonIgnore
+    @JsonBackReference(value = "question-tag")
     private Question question;
 }

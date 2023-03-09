@@ -1,5 +1,8 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,6 +36,7 @@ public class User extends BaseEntity {
             cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
             fetch = FetchType.LAZY
     )
+    @JsonIgnoreProperties("user")
     private List<Question> questions;
 
     @OneToMany(
@@ -41,5 +45,6 @@ public class User extends BaseEntity {
             cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
             fetch = FetchType.LAZY
     )
+    @JsonIgnoreProperties("user")
     private List<Answer> answers;
 }

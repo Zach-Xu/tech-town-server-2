@@ -1,5 +1,6 @@
 package com.tech.vo;
 
+import com.tech.model.Tag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ public class QuestionResponse extends BaseRepsonse{
 
     private UserResponse user;
 
-    private List<TagResponse> tags;
+    private List<Tag> tags;
 
     private LocalDateTime createdTime;
 

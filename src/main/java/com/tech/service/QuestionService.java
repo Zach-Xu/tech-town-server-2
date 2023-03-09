@@ -14,4 +14,6 @@ public interface QuestionService {
     ResponseResult<Question> getQuestionById();
 
     ResponseResult<Question> createQuestion(Question question);
+
+    ResponseResult<Question> getQuestion(Long questionId);
 }

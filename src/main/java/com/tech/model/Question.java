@@ -1,6 +1,9 @@
 package com.tech.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +32,7 @@ public class Question extends BaseEntity {
                     name = "fk_question_user"
             )
     )
+    @JsonIgnoreProperties({"password", "questions"})
     private User user;
 
     @OneToMany(
@@ -37,6 +41,7 @@ public class Question extends BaseEntity {
             cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
             fetch = FetchType.LAZY
     )
+    @JsonManagedReference(value = "question-answer")
     private List<Answer> answers;
 
     @OneToMany(
@@ -45,15 +50,16 @@ public class Question extends BaseEntity {
             cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
             fetch = FetchType.EAGER
     )
+    @JsonManagedReference(value = "question-tag")
     private List<Tag> tags;
 
-    @Column( name="views", nullable = true, columnDefinition = "int default 0")
-    private Integer views;
+    @Column( name="views", nullable = false, columnDefinition = "int default 0")
+    private int views;
 
-    @Column( name="up_votes", nullable = true, columnDefinition = "int default 0")
-    private Integer upVotes;
+    @Column( name="up_votes", nullable = false, columnDefinition = "int default 0")
+    private int upVotes;
 
-    @Column( name="down_votes", nullable = true, columnDefinition = "int default 0")
-    private Integer downVotes;
+    @Column( name="down_votes", nullable = false, columnDefinition = "int default 0")
+    private int downVotes;
 
 }
