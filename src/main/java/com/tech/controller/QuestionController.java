@@ -1,5 +1,6 @@
 package com.tech.controller;
 
+import com.tech.dto.AnswerDTO;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
@@ -33,5 +34,9 @@ public class QuestionController {
         return questionService.getQuestion(questionId);
     }
 
+    @PostMapping("/answers/{questionId}")
+    public ResponseResult<Question> createAnswer(@PathVariable("questionId") Long questionId, @RequestBody AnswerDTO answer){
+        return questionService.createAnswer(questionId, answer);
+    }
 
 }

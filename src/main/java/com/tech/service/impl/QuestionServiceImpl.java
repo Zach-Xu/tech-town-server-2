@@ -1,9 +1,12 @@
 package com.tech.service.impl;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+import com.tech.dto.AnswerDTO;
 import com.tech.exception.AuthException;
 import com.tech.exception.NotFoundException;
+import com.tech.model.Answer;
 import com.tech.model.User;
+import com.tech.repo.AnswerRepository;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
@@ -27,6 +30,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Override
     public ResponseResult<List<QuestionResponse>> getAllQuestions() {
@@ -82,5 +88,35 @@ public class QuestionServiceImpl implements QuestionService {
         return question.map(q -> new ResponseResult(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", q))
                 .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
 
+    }
+
+    @Override
+    public ResponseResult<Question> createAnswer(Long questionId, AnswerDTO answer) {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (Objects.isNull(loginUser)) {
+            throw new AuthException("invalid user");
+        }
+
+        Optional<Question> optionalQuestion = questionRepository.findById(questionId);
+        Question question = optionalQuestion.map(q -> {
+            if(loginUser.getId().equals(questionId)) {
+                throw new IllegalArgumentException("You are not allowed to answer your own question!");
+            }
+            List<Answer> answers = q.getAnswers();
+            // create a new answer entity and set required fields
+            Answer newAnswer = new Answer();
+            newAnswer.setContent(answer.getContent());
+            newAnswer.setUser(loginUser);
+            newAnswer.setQuestion(q);
+            // save new answer to database
+            answerRepository.save(newAnswer);
+            // add to the answers list of the question
+            answers.add(newAnswer);
+            return q;
+        }).orElseThrow(() -> new NotFoundException(("Question with id " + questionId) + " not found"));
+
+        // update question and save new answer to database
+//        questionRepository.save(question);
+        return new ResponseResult(HTTPResponse.SC_CREATED, "Answered created successfully", question);
     }
 }

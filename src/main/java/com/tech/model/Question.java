@@ -32,7 +32,7 @@ public class Question extends BaseEntity {
                     name = "fk_question_user"
             )
     )
-    @JsonIgnoreProperties({"password", "questions"})
+    @JsonIgnoreProperties({"password", "questions", "answers"})
     private User user;
 
     @OneToMany(

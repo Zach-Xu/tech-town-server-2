@@ -1,14 +1,19 @@
 package com.tech.model;
 
+import com.azure.core.annotation.Get;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 @Entity(name = "Answer")
 @Table(name = " tb_answer")
+@Getter
+@Setter
 public class Answer extends BaseEntity {
 
     @Column(name = "content", nullable = false)
@@ -35,7 +40,7 @@ public class Answer extends BaseEntity {
                     name = "fk_answer_user"
             )
     )
-    @JsonIgnoreProperties({"password", "answers"})
+    @JsonIgnoreProperties({"password", "answers", "questions"})
     private User user;
 
 
