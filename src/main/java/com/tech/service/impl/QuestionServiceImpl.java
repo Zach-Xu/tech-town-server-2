@@ -6,7 +6,9 @@ import com.tech.exception.AuthException;
 import com.tech.exception.NotFoundException;
 import com.tech.model.Answer;
 import com.tech.model.User;
+import com.tech.model.Vote;
 import com.tech.repo.AnswerRepository;
+import com.tech.repo.VoteRepository;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
@@ -20,10 +22,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import javax.transaction.Transactional;
+import java.util.*;
+import java.util.function.BiConsumer;
+
+import static com.tech.utils.Constants.*;
 
 @Service
 public class QuestionServiceImpl implements QuestionService {
@@ -32,7 +35,7 @@ public class QuestionServiceImpl implements QuestionService {
     private QuestionRepository questionRepository;
 
     @Autowired
-    private AnswerRepository answerRepository;
+    private VoteRepository voteRepository;
 
     @Override
     public ResponseResult<List<QuestionResponse>> getAllQuestions() {
@@ -54,6 +57,9 @@ public class QuestionServiceImpl implements QuestionService {
             BeanUtils.copyProperties(question.getUser(), userResponse);
             questionResponse.setUser(userResponse);
 
+            // calculate the votes
+            questionResponse.setVotes(question.getUpVotes() - question.getDownVotes());
+
             // set the number of answers instead of returning the entire answer object
             questionResponse.setNumOfAnswers(question.getAnswers().size());
 
@@ -62,11 +68,6 @@ public class QuestionServiceImpl implements QuestionService {
         });
 
         return new ResponseResult(HTTPResponse.SC_OK, "retrieved first 100 questions", questionResponseList);
-    }
-
-    @Override
-    public ResponseResult<Question> getQuestionById() {
-        return null;
     }
 
     @Override
@@ -85,38 +86,120 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public ResponseResult<Question> getQuestion(Long questionId) {
         Optional<Question> question = questionRepository.findById(questionId);
-        return question.map(q -> new ResponseResult(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", q))
+        Question updatedQuestion = question.map(q -> {
+                    // increase the number of views by 1
+                    q.setViews(q.getViews() + 1);
+                    // update the question
+                    questionRepository.save(q);
+                    // return updated question
+                    return q;
+                })
                 .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
+
+        return new ResponseResult(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", updatedQuestion);
 
     }
 
+    @Transactional
     @Override
-    public ResponseResult<Question> createAnswer(Long questionId, AnswerDTO answer) {
+    public ResponseResult<Question> voteQuestion(Long questionId, Vote vote) {
         User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.isNull(loginUser)) {
             throw new AuthException("invalid user");
         }
 
-        Optional<Question> optionalQuestion = questionRepository.findById(questionId);
-        Question question = optionalQuestion.map(q -> {
-            if(loginUser.getId().equals(questionId)) {
-                throw new IllegalArgumentException("You are not allowed to answer your own question!");
-            }
-            List<Answer> answers = q.getAnswers();
-            // create a new answer entity and set required fields
-            Answer newAnswer = new Answer();
-            newAnswer.setContent(answer.getContent());
-            newAnswer.setUser(loginUser);
-            newAnswer.setQuestion(q);
-            // save new answer to database
-            answerRepository.save(newAnswer);
-            // add to the answers list of the question
-            answers.add(newAnswer);
-            return q;
-        }).orElseThrow(() -> new NotFoundException(("Question with id " + questionId) + " not found"));
+        Optional<Vote> voteDB = voteRepository.findByQuestionIdAndUserId(questionId, loginUser.getId());
+        int currentVoteStatus = vote.getStatus();
+        voteDB.ifPresentOrElse(
+                v -> {
+                    int previousVoteStatus = v.getStatus();
+                    if (previousVoteStatus == currentVoteStatus) {
+                        // do nothing on same vote actions
+                        return;
+                    }
 
-        // update question and save new answer to database
-//        questionRepository.save(question);
-        return new ResponseResult(HTTPResponse.SC_CREATED, "Answered created successfully", question);
+                    // update vote count in question
+                    Optional<Question> votedQuestion = questionRepository.findById(questionId);
+                    votedQuestion.map(question -> {
+                                // update the vote status on question based on current and previous vote status
+                                Map<Integer, BiConsumer<Question, Integer>> voteActions = new HashMap<>();
+                                voteActions.put(CANCEL_VOTE, this::cancelVote);
+                                voteActions.put(UP_VOTE, this::upVote);
+                                voteActions.put(DOWN_VOTE, this::downVote);
+                                voteActions.get(currentVoteStatus).accept(question, previousVoteStatus);
+
+                                // update vote status to current
+                                v.setStatus(currentVoteStatus);
+                                voteRepository.save(v);
+
+                                return questionRepository.save(question);
+                            })
+                            .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
+                }, () -> {
+                    // first time to vote a question
+                    Optional<Question> votedQuestion = questionRepository.findById(questionId);
+                    votedQuestion.map(question -> {
+                        // no need to cancel previous vote status on question
+                                switch (currentVoteStatus) {
+                                    case UP_VOTE:
+                                        question.setUpVotes(question.getUpVotes() + 1);
+                                        break;
+                                    case DOWN_VOTE:
+                                        question.setDownVotes(question.getDownVotes() + 1);
+                                        break;
+                                }
+                                // set relationship with other entities
+                                vote.setUser(loginUser);
+                                vote.setQuestion(question);
+                                // create vote in database
+                                voteRepository.save(vote);
+
+                                return questionRepository.save(question);
+                            })
+                            .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
+                }
+        );
+
+        return new ResponseResult<>(200, "voted question successfully");
     }
+
+    @Override
+    public void cancelVote(Question question, int previousVoteStatus) {
+        // current action is cancel, no need to modify votes count in question
+
+        this.cancelPreviousVoteAction(question, previousVoteStatus);
+    }
+
+    @Override
+    public void upVote(Question question, int previousVoteStatus) {
+        // perform current up vote action
+        question.setUpVotes(question.getUpVotes() + 1);
+
+        this.cancelPreviousVoteAction(question, previousVoteStatus);
+    }
+
+    @Override
+    public void downVote(Question question, int previousVoteStatus) {
+        // perform current down vote action
+        question.setDownVotes(question.getDownVotes() + 1);
+        this.cancelPreviousVoteAction(question, previousVoteStatus);
+    }
+
+    @Override
+    public void cancelPreviousVoteAction(Question question, int previousVoteStatus) {
+        switch (previousVoteStatus) {
+            case CANCEL_VOTE:
+                break;
+            case UP_VOTE:
+                // cancel up vote
+                question.setUpVotes(question.getUpVotes() - 1);
+                break;
+            case DOWN_VOTE:
+                // cancel down vote
+                question.setDownVotes(question.getDownVotes() - 1);
+                break;
+        }
+    }
+
+
 }

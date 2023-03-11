@@ -1,6 +1,9 @@
 package com.tech.controller;
 
 import com.tech.dto.AnswerDTO;
+import com.tech.model.Answer;
+import com.tech.model.Vote;
+import com.tech.service.AnswerService;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.model.Question;
@@ -19,6 +22,9 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
+    @Autowired
+    private AnswerService answerService;
+
     @GetMapping
     public ResponseResult<List<QuestionResponse>> getAllQuestions(){
         return questionService.getAllQuestions();
@@ -29,14 +35,21 @@ public class QuestionController {
         return questionService.createQuestion(question);
     }
 
-    @GetMapping("/{id}")
-    public ResponseResult<Question> getQuestion(@PathVariable("id") Long questionId){
+    @GetMapping("/{questionId}")
+    public ResponseResult<Question> getQuestion(@PathVariable("questionId") Long questionId){
         return questionService.getQuestion(questionId);
     }
 
     @PostMapping("/answers/{questionId}")
-    public ResponseResult<Question> createAnswer(@PathVariable("questionId") Long questionId, @RequestBody AnswerDTO answer){
-        return questionService.createAnswer(questionId, answer);
+    public ResponseResult<Answer> createAnswer(@PathVariable("questionId") Long questionId, @RequestBody AnswerDTO answer){
+        return answerService.createAnswer(questionId, answer);
     }
+
+    @PostMapping("/vote/{questionId}")
+    public ResponseResult<Question> voteQuestion(@PathVariable("questionId") Long questionId, @RequestBody Vote vote){
+        return questionService.voteQuestion(questionId, vote);
+    }
+
+
 
 }

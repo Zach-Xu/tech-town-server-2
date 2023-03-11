@@ -17,7 +17,11 @@ public class QuestionResponse extends BaseRepsonse{
 
     private LocalDateTime createdTime;
 
-    private Integer numOfAnswers;
+    private int numOfAnswers;
+
+    private int votes;
+
+    private int views;
 }
 
 
