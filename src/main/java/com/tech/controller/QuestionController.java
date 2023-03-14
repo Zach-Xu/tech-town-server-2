@@ -45,9 +45,14 @@ public class QuestionController {
         return answerService.createAnswer(questionId, answer);
     }
 
-    @PostMapping("/vote/{questionId}")
-    public ResponseResult<Question> voteQuestion(@PathVariable("questionId") Long questionId, @RequestBody Vote vote){
+    @PostMapping("/{questionId}/vote")
+    public ResponseResult<Vote> voteQuestion(@PathVariable("questionId") Long questionId, @RequestBody Vote vote){
         return questionService.voteQuestion(questionId, vote);
+    }
+
+    @GetMapping("/{questionId}/vote")
+    public ResponseResult<Vote> getUserVoteOnQuestion(@PathVariable("questionId") Long questionId) {
+        return questionService.getUserVoteOnQuestion(questionId);
     }
 
 

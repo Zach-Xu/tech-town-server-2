@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .authorizeRequests().antMatchers("/api/auth/login",
                         "/api/auth/register").anonymous().
                 and()
-                .authorizeRequests().antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**").anonymous()
+                .authorizeRequests().antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**").permitAll()
                 .anyRequest().authenticated();
 
         // allow cross-origin

@@ -1,6 +1,8 @@
 package com.tech.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +24,7 @@ public class Vote extends BaseEntity{
             )
 
     )
-    @JsonIgnore
+    @JsonIncludeProperties({"id", "username"})
     private User user;
 
     @ManyToOne
@@ -34,7 +36,7 @@ public class Vote extends BaseEntity{
                    name = "fk_vote_question"
             )
     )
-    @JsonIgnore
+    @JsonIncludeProperties({"id","title", "upVotes", "downVotes"})
     private Question question;
 
     @Column( name = "vote_status", columnDefinition = "smallint default 1 comment 'vote status, 0 for cancel, 1 for up vote, 2 for down vote'")

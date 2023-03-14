@@ -16,9 +16,11 @@ public interface QuestionService {
 
     ResponseResult<Question> getQuestion(Long questionId);
 
-    ResponseResult<Question> voteQuestion(Long questionId, Vote vote);
+    ResponseResult<Vote> voteQuestion(Long questionId, Vote vote);
     void cancelVote(Question question, int previousVoteStatus) ;
     void upVote(Question question, int previousVoteStatus) ;
     void downVote(Question question, int previousVoteStatus) ;
     void cancelPreviousVoteAction(Question question, int previousVoteStatus);
+
+    ResponseResult<Vote> getUserVoteOnQuestion(Long questionId);
 }

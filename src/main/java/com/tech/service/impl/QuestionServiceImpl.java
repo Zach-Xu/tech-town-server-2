@@ -1,13 +1,10 @@
 package com.tech.service.impl;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
-import com.tech.dto.AnswerDTO;
 import com.tech.exception.AuthException;
 import com.tech.exception.NotFoundException;
-import com.tech.model.Answer;
 import com.tech.model.User;
 import com.tech.model.Vote;
-import com.tech.repo.AnswerRepository;
 import com.tech.repo.VoteRepository;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
@@ -67,7 +64,7 @@ public class QuestionServiceImpl implements QuestionService {
             questionResponseList.add(questionResponse);
         });
 
-        return new ResponseResult(HTTPResponse.SC_OK, "retrieved first 100 questions", questionResponseList);
+        return new ResponseResult<>(HTTPResponse.SC_OK, "retrieved first 100 questions", questionResponseList);
     }
 
     @Override
@@ -80,7 +77,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setUser(loginUser);
         question.getTags().forEach(tag -> tag.setQuestion(question));
         questionRepository.save(question);
-        return new ResponseResult(HTTPResponse.SC_CREATED, "created question successfully", question);
+        return new ResponseResult<>(HTTPResponse.SC_CREATED, "created question successfully", question);
     }
 
     @Override
@@ -96,13 +93,13 @@ public class QuestionServiceImpl implements QuestionService {
                 })
                 .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
 
-        return new ResponseResult(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", updatedQuestion);
+        return new ResponseResult<>(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", updatedQuestion);
 
     }
 
     @Transactional
     @Override
-    public ResponseResult<Question> voteQuestion(Long questionId, Vote vote) {
+    public ResponseResult<Vote> voteQuestion(Long questionId, Vote vote) {
         User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.isNull(loginUser)) {
             throw new AuthException("invalid user");
@@ -139,14 +136,11 @@ public class QuestionServiceImpl implements QuestionService {
                     // first time to vote a question
                     Optional<Question> votedQuestion = questionRepository.findById(questionId);
                     votedQuestion.map(question -> {
-                        // no need to cancel previous vote status on question
+                                // no need to cancel previous vote status on question
                                 switch (currentVoteStatus) {
-                                    case UP_VOTE:
-                                        question.setUpVotes(question.getUpVotes() + 1);
-                                        break;
-                                    case DOWN_VOTE:
-                                        question.setDownVotes(question.getDownVotes() + 1);
-                                        break;
+                                    case UP_VOTE -> question.setUpVotes(question.getUpVotes() + 1);
+                                    case DOWN_VOTE -> question.setDownVotes(question.getDownVotes() + 1);
+                                    default -> throw new IllegalArgumentException("Invalid vote status");
                                 }
                                 // set relationship with other entities
                                 vote.setUser(loginUser);
@@ -160,7 +154,8 @@ public class QuestionServiceImpl implements QuestionService {
                 }
         );
 
-        return new ResponseResult<>(200, "voted question successfully");
+        return voteDB.map(v -> new ResponseResult<>(200, "voted question successfully", v))
+                .orElse(new ResponseResult<>(200, "voted question successfully", vote));
     }
 
     @Override
@@ -199,6 +194,18 @@ public class QuestionServiceImpl implements QuestionService {
                 question.setDownVotes(question.getDownVotes() - 1);
                 break;
         }
+    }
+
+    @Override
+    public ResponseResult<Vote> getUserVoteOnQuestion(Long questionId) {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (Objects.isNull(loginUser)) {
+            throw new AuthException("invalid user");
+        }
+
+        Optional<Vote> userVoteOnQuestion = voteRepository.findByQuestionIdAndUserId(questionId, loginUser.getId());
+        return userVoteOnQuestion.map(vote -> new ResponseResult(HTTPResponse.SC_OK, "fetched vote info successfully", vote))
+                .orElseThrow(() -> new NotFoundException("Vote not found"));
     }
 
 
