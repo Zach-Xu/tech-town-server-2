@@ -47,4 +47,34 @@ public class User extends BaseEntity {
     )
     @JsonIgnoreProperties("user")
     private List<Answer> answers;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_inbox",
+            joinColumns = @JoinColumn(
+                    name = "user_id",
+                    referencedColumnName = "id"
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "inbox_id",
+                    referencedColumnName = "id"
+            )
+    )
+    private List<Inbox> inboxes;
+
+    @OneToMany(
+            mappedBy = "sender",
+            orphanRemoval = true,
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
+            fetch = FetchType.LAZY
+    )
+    private List<Message> receivedMessages;
+
+    @OneToMany(
+            mappedBy = "receiver",
+            orphanRemoval = true,
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
+            fetch = FetchType.LAZY
+    )
+    private List<Message> sentMessages;
 }

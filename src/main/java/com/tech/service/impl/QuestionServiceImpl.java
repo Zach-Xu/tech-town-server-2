@@ -108,6 +108,7 @@ public class QuestionServiceImpl implements QuestionService {
         Optional<Vote> voteDB = voteRepository.findByQuestionIdAndUserId(questionId, loginUser.getId());
         int currentVoteStatus = vote.getStatus();
         voteDB.ifPresentOrElse(
+                // update previous record
                 v -> {
                     int previousVoteStatus = v.getStatus();
                     if (previousVoteStatus == currentVoteStatus) {
@@ -133,10 +134,10 @@ public class QuestionServiceImpl implements QuestionService {
                             })
                             .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
                 }, () -> {
-                    // first time to vote a question
-                    Optional<Question> votedQuestion = questionRepository.findById(questionId);
-                    votedQuestion.map(question -> {
-                                // no need to cancel previous vote status on question
+                    // create a new vote record
+                    Optional<Question> questionOnVote = questionRepository.findById(questionId);
+                    questionOnVote.map(question -> {
+                                // no need to cancel previous vote status on question as it's the first time to vote
                                 switch (currentVoteStatus) {
                                     case UP_VOTE -> question.setUpVotes(question.getUpVotes() + 1);
                                     case DOWN_VOTE -> question.setDownVotes(question.getDownVotes() + 1);

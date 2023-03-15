@@ -43,5 +43,4 @@ public class Answer extends BaseEntity {
     @JsonIgnoreProperties({"password", "answers", "questions"})
     private User user;
 
-
 }
