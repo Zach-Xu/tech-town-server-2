@@ -48,7 +48,9 @@ public class User extends BaseEntity {
     @JsonIgnoreProperties("user")
     private List<Answer> answers;
 
-    @ManyToMany
+    @ManyToMany(
+            cascade = CascadeType.PERSIST
+    )
     @JoinTable(
             name = "user_inbox",
             joinColumns = @JoinColumn(

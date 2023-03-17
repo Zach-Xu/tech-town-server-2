@@ -1,5 +1,7 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.tech.utils.InboxType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,10 +15,11 @@ import java.util.List;
 public class Inbox extends BaseEntity{
 
     @ManyToMany(
+            cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
             mappedBy = "inboxes"
     )
+    @JsonIncludeProperties({"id","username"})
     private List<User> participants;
-
 
     @OneToMany(
             cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
@@ -24,11 +27,18 @@ public class Inbox extends BaseEntity{
     )
     private List<Message> messages;
 
-    @OneToOne
+    @OneToOne(
+            cascade = {CascadeType.PERSIST,CascadeType.REMOVE}
+    )
     @JoinColumn(
             name = "last_message_id",
-            nullable = false,
+            nullable = true,
             referencedColumnName = "id"
     )
     private Message lastMessage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private InboxType type;
 }
+

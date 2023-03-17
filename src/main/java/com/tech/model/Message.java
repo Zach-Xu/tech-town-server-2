@@ -1,7 +1,9 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 
@@ -17,6 +19,7 @@ public class Message extends BaseEntity {
             nullable = false,
             referencedColumnName = "id"
     )
+    @JsonIncludeProperties({"id","username"})
     private User sender;
 
     @ManyToOne
@@ -25,9 +28,12 @@ public class Message extends BaseEntity {
             nullable = false,
             referencedColumnName = "id"
     )
+    @JsonIncludeProperties({"id","username"})
     private User receiver;
 
-    @ManyToOne
+    @ManyToOne(
+            cascade = CascadeType.PERSIST
+    )
     @JoinColumn(
             name = "inbox_id",
             nullable = false,
@@ -36,8 +42,11 @@ public class Message extends BaseEntity {
                     name = "fk_message_inbox"
             )
     )
+    @JsonIncludeProperties("id")
     private Inbox inbox;
 
     @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
+
+
 }

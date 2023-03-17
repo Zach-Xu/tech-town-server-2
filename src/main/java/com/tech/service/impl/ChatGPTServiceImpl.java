@@ -1,10 +1,8 @@
 package com.tech.service.impl;
 
-import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+
 import com.tech.config.OpenAiConfig;
-import com.tech.dto.PromptDTO;
 import com.tech.service.ChatGPTService;
-import com.tech.vo.ResponseResult;
 import com.theokanning.openai.OpenAiService;
 import com.theokanning.openai.completion.CompletionChoice;
 import com.theokanning.openai.completion.CompletionRequest;
@@ -30,13 +28,12 @@ public class ChatGPTServiceImpl implements ChatGPTService {
     }
 
     @Override
-    public ResponseResult createCompletion(PromptDTO promptDTO) {
-        String prompt = promptDTO.getPrompt();
+    public String createCompletion(String prompt ) {
         if (Strings.isBlank(prompt)) {
             throw new IllegalArgumentException("Message cannot be blank");
         }
         CompletionRequest completionRequest = this.buildCompletionRequest(prompt);
-        return new ResponseResult(HTTPResponse.SC_OK, "ChatGPT generated message successfully", this.createCompletion(completionRequest));
+        return this.createCompletion(completionRequest);
     }
 
     private CompletionRequest buildCompletionRequest(String message) {
@@ -56,7 +53,9 @@ public class ChatGPTServiceImpl implements ChatGPTService {
         CompletionResult completion = this.openAiService.createCompletion(completionRequest);
         List<CompletionChoice> choices = completion.getChoices();
         choices.forEach(choice -> response.append(choice.getText()));
-
+        /**
+         *  toDo truncate response
+         * */
 //        String res = StrUtil.replaceFirst(response.toString(), "\n\n", "");
 
         return response.toString();

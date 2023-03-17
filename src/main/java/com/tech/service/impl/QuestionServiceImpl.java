@@ -74,6 +74,8 @@ public class QuestionServiceImpl implements QuestionService {
             throw new AuthException("invalid user");
         }
 
+        // loginUser is in detached stage but this won't throw an error
+        // because many-to-one relationship will not persist user again
         question.setUser(loginUser);
         question.getTags().forEach(tag -> tag.setQuestion(question));
         questionRepository.save(question);
