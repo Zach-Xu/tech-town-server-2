@@ -42,6 +42,7 @@ public class MessageServiceImpl implements MessageService {
 
 
     @Override
+    @Transactional
     public ResponseResult createMessage(MessageDTO messageDTO) {
         User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.isNull(loginUser)) {
@@ -64,6 +65,7 @@ public class MessageServiceImpl implements MessageService {
                 .orElseGet(() -> {
                     Inbox newInbox = new Inbox();
                     newInbox.setParticipants(participants);
+                    participants.forEach(p -> p.getInboxes().add(newInbox));
                     newInbox.setMessages(messages);
                     newInbox.setType(type);
                     return newInbox;
@@ -99,7 +101,7 @@ public class MessageServiceImpl implements MessageService {
             default -> throw new IllegalArgumentException("Invalid inbox type");
         }
 
-        inboxRepository.save(inbox);
+        inboxRepository.save (inbox);
 
         return new ResponseResult(HTTPResponse.SC_CREATED, "Message was sent successfully", inbox.getLastMessage());
     }

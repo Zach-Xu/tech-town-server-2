@@ -2,6 +2,7 @@ package com.tech.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,6 +63,7 @@ public class User extends BaseEntity {
                     referencedColumnName = "id"
             )
     )
+    @JsonIncludeProperties("user")
     private List<Inbox> inboxes;
 
     @OneToMany(

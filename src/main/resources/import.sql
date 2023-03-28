@@ -1,0 +1,1 @@
+INSERT INTO tb_user (id, email, password, username) VALUES (1, 'techtownbot@chatgpt.com', '$2a$12$SV48lOTrWQtum4IoUQ4uC.PweMwv8ijkeCLlAOw5wtMyJQG.MUx3W','Bot');

@@ -15,20 +15,20 @@ import java.util.List;
 public class Inbox extends BaseEntity{
 
     @ManyToMany(
-            cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
+            cascade = {CascadeType.ALL},
             mappedBy = "inboxes"
     )
     @JsonIncludeProperties({"id","username"})
     private List<User> participants;
 
     @OneToMany(
-            cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
+            cascade = {CascadeType.ALL},
             mappedBy = "inbox"
     )
     private List<Message> messages;
 
     @OneToOne(
-            cascade = {CascadeType.PERSIST,CascadeType.REMOVE}
+            cascade = {CascadeType.ALL}
     )
     @JoinColumn(
             name = "last_message_id",
