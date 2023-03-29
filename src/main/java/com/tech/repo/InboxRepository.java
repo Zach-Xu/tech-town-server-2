@@ -14,4 +14,6 @@ public interface InboxRepository extends JpaRepository<Inbox, Long> {
     Optional<Inbox> findByParticipantsIn(List<User> participants);
 
     Optional<List<Inbox>> findAllByParticipantsIn(List<User> participants);
+
+
 }

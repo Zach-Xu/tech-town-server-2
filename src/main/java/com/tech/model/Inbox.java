@@ -1,5 +1,6 @@
 package com.tech.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.tech.utils.InboxType;
 import lombok.Getter;
@@ -25,6 +26,7 @@ public class Inbox extends BaseEntity{
             cascade = {CascadeType.ALL},
             mappedBy = "inbox"
     )
+    @JsonIgnore
     private List<Message> messages;
 
     @OneToOne(
