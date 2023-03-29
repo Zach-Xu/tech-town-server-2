@@ -61,7 +61,7 @@ public class MessageServiceImpl implements MessageService {
         List<User> participants = new ArrayList<>(Arrays.asList(sender, receiver));
         List<Message> messages = new ArrayList<>();
         InboxType type = messageDTO.getType();
-        Inbox inbox = inboxRepository.findByParticipantsIn(participants)
+        Inbox inbox = inboxRepository.findByParticipants( new ArrayList<>(Arrays.asList(sender.getId(), receiver.getId())))
                 .orElseGet(() -> {
                     Inbox newInbox = new Inbox();
                     newInbox.setParticipants(participants);

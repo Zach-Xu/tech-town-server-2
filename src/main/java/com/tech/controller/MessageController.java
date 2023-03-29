@@ -23,7 +23,7 @@ public class MessageController {
         return inboxService.getAllInboxes();
     }
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseResult createInbox(@RequestBody InboxDTO inboxDTO){
         return inboxService.createInbox(inboxDTO);
     }

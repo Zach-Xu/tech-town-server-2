@@ -51,7 +51,10 @@ public class InboxServiceImpl implements InboxService {
         List<User> participants = new ArrayList<>(Arrays.asList(sender, receiver));
         List<Message> messages = new ArrayList<>();
         InboxType type = inboxDTO.getType();
-        inboxRepository.findByParticipantsIn(participants).ifPresent( inbox ->  {throw new IllegalArgumentException("Inbox already created: " + inbox.getId());});
+        inboxRepository.findByParticipants(new ArrayList<>(Arrays.asList(sender.getId(), receiver.getId())))
+                .ifPresent(inbox -> {
+                    throw new IllegalArgumentException("Inbox already created: " + inbox.getId());
+                });
 
         Inbox newInbox = new Inbox();
         newInbox.setParticipants(participants);
