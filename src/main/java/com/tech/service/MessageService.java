@@ -9,4 +9,6 @@ public interface MessageService {
 
     @Transactional
     ResponseResult createMessage(MessageDTO messageDTO);
+
+    ResponseResult getAllMessagesByInboxId(Long inboxId);
 }

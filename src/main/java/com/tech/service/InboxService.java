@@ -11,4 +11,5 @@ public interface InboxService {
     ResponseResult<List<Inbox>> getAllInboxes();
 
     ResponseResult<Inbox> createInbox(InboxDTO inboxDTO);
+
 }

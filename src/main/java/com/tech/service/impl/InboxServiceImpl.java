@@ -65,4 +65,5 @@ public class InboxServiceImpl implements InboxService {
         return new ResponseResult<>(HTTPResponse.SC_CREATED, "Inbox created successfully", newInbox);
     }
 
+
 }

@@ -33,4 +33,9 @@ public class MessageController {
         return messageService.createMessage(messageDTO);
     }
 
+    @GetMapping("/{inboxId}")
+    public ResponseResult getAllInboxMessages(@PathVariable("inboxId")Long inboxId){
+        return messageService.getAllMessagesByInboxId(inboxId);
+    }
+
 }

@@ -3,15 +3,27 @@ package com.tech.model;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity(name = "Message")
 @Table(name = "tb_message")
-public class Message extends BaseEntity {
+public class Message {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private LocalDateTime createdTime;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedTime;
 
     @ManyToOne
     @JoinColumn(
@@ -44,6 +56,8 @@ public class Message extends BaseEntity {
     )
     @JsonIncludeProperties("id")
     private Inbox inbox;
+
+
 
     @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
