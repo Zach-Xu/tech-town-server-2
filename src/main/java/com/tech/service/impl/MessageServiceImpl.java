@@ -16,6 +16,8 @@ import com.tech.service.MessageService;
 import com.tech.utils.InboxType;
 import com.tech.vo.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,9 +122,11 @@ public class MessageServiceImpl implements MessageService {
                     .orElseThrow(() ->new AuthException("Not allowed to fetch messages that does not belong to you."));
         });
 
-        Optional<List<Message>> messages = messageRepository.findALLByInbox_IdOrderByCreatedTimeAsc(inboxId);
+        // fetch recent 20 messages
+        Page<Message> messagePage = messageRepository.findALLByInbox_IdOrderByCreatedTimeDesc(inboxId, PageRequest.ofSize(20 ));
+        List<Message> messages = messagePage.getContent();
 
-        return new ResponseResult(HTTPResponse.SC_OK,"Fetched messages successfully" ,messages.orElse(new ArrayList<>()));
+        return new ResponseResult(HTTPResponse.SC_OK,"Fetched messages successfully" , messages);
 
     }
 }
