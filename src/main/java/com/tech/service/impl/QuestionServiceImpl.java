@@ -49,7 +49,7 @@ public class QuestionServiceImpl implements QuestionService {
             QuestionResponse questionResponse = new QuestionResponse();
             UserResponse userResponse = new UserResponse();
 
-            // Copies the properties from the entities to custom view objects
+            // Copies the properties from the entities to create custom view objects
             BeanUtils.copyProperties(question, questionResponse);
             BeanUtils.copyProperties(question.getUser(), userResponse);
             questionResponse.setUser(userResponse);

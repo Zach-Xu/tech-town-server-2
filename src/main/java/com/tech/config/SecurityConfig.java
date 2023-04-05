@@ -57,13 +57,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 // SecurityContext is not needed
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests().antMatchers("/api/auth/login",
-                        "/api/auth/register").anonymous().
-                and()
-                .authorizeRequests().antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**", "/api/chat/**").permitAll()
-                .anyRequest().authenticated();
+                .authorizeRequests()
+                .antMatchers("/api/auth/login", "/api/auth/register")
+                .anonymous()
+                .and()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**", "/api/chat/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated();
 
         // allow cross-origin
         http.cors();
@@ -71,9 +76,7 @@ public class SecurityConfig {
         // add custom filters
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        http.exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)
-                .accessDeniedHandler(accessDeniedHandler);
+        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler);
 
         return http.build();
     }

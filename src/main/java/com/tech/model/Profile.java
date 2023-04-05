@@ -5,13 +5,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@Entity(name ="Profile")
-@Table(name = "tb_profile")
-public class Profile extends BaseEntity{
+@Entity(name = "Profile")
+@Table(name = "tb_profile",
+    uniqueConstraints = {
+        @UniqueConstraint(
+                name = "unique_profile_user_id",
+                columnNames = "user_id"
+        )
+    }
+)
+public class Profile extends BaseEntity implements Serializable {
 
     @Column(name = "bio")
     private String bio;
@@ -27,5 +36,13 @@ public class Profile extends BaseEntity{
     )
     @JsonManagedReference(value = "profile-skill")
     private List<Skill> skills;
+
+    public Profile() {
+
+    }
+
+    public Profile(Long userId) {
+        this.userId = userId;
+    }
 
 }
