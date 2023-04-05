@@ -1,6 +1,7 @@
 package com.tech.service.impl;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+import com.tech.config.GitHubConfig;
 import com.tech.exception.NotFoundException;
 import com.tech.model.Profile;
 import com.tech.model.User;
@@ -10,10 +11,22 @@ import com.tech.utils.FollowStatus;
 import com.tech.vo.ProfileResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.vo.UserCardResponse;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import javax.net.ssl.SSLContext;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -32,6 +45,12 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Autowired
     private AnswerRepository answerRepository;
+
+    @Resource
+    private RestTemplate restTemplate;
+
+    @Resource
+    private GitHubConfig gitHubConfig;
 
     @Override
     public ResponseResult<ProfileResponse> getUserProfile(Long userId) {
@@ -59,9 +78,9 @@ public class ProfileServiceImpl implements ProfileService {
         profileResponse.setFollowing(followRepository.countByFollowerIdAndStatus(userId, FollowStatus.FOLLOW).intValue());
 
         // fetch profile for loggedIn user
-        if(loginUser.getId().equals(userId)){
+        if (loginUser.getId().equals(userId)) {
             profileResponse.setFollowed(false);
-        }else {
+        } else {
             profileResponse.setFollowed(followRepository.existsByUserIdAndFollowerIdAndStatus(userId, loginUser.getId(), FollowStatus.FOLLOW));
         }
         return new ResponseResult<>(HTTPResponse.SC_OK, "fetched user profile successfully", profileResponse);
@@ -80,12 +99,21 @@ public class ProfileServiceImpl implements ProfileService {
         userCardResponse.setAnswers(answerRepository.countByUser_Id(userId).intValue());
 
         // fetch user card for loggedIn user
-        if(loginUser.getId().equals(userId)){
+        if (loginUser.getId().equals(userId)) {
             userCardResponse.setFollowed(false);
-        }else {
+        } else {
             userCardResponse.setFollowed(followRepository.existsByUserIdAndFollowerIdAndStatus(userId, loginUser.getId(), FollowStatus.FOLLOW));
         }
 
         return new ResponseResult<>(HTTPResponse.SC_OK, "fetched user card successfully", userCardResponse);
+    }
+
+    @Override
+    public ResponseResult getUserRepos(String username) {
+        String url = "https://api.github.com/users/{1}/repos?per_page=5&sort=created:desc&client_id={2}&client_secret={3}";
+
+        ResponseEntity<Object[]> response = restTemplate.getForEntity(url, Object[].class , username, gitHubConfig.getClient_id(), gitHubConfig.getClient_secret());
+        String message = response.getStatusCodeValue() == HTTPResponse.SC_OK ? "Fetched GitHub Repos successfully" : "Failed to Fetched GitHub Repos, possible reason: username not found";
+        return new ResponseResult(response.getStatusCodeValue(), message, response.getBody());
     }
 }

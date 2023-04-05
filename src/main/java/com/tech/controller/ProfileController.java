@@ -26,4 +26,9 @@ public class ProfileController{
     ResponseResult<UserCardResponse> getUserCardInfo(@PathVariable("userId") Long userId){
         return profileService.getUserCardInfo(userId);
     }
+
+    @GetMapping("/github/{username}")
+    ResponseResult getUserRepos(@PathVariable("username") String username){
+        return profileService.getUserRepos(username);
+    }
 }

@@ -9,4 +9,6 @@ public interface ProfileService {
     ResponseResult<ProfileResponse> getUserProfile(Long userId);
 
     ResponseResult<UserCardResponse> getUserCardInfo(Long userId);
+
+    ResponseResult getUserRepos(String username);
 }
