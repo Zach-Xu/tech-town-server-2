@@ -2,18 +2,22 @@ package com.tech.service.impl;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.tech.config.GitHubConfig;
+import com.tech.dto.ProfileDTO;
 import com.tech.exception.NotFoundException;
 import com.tech.model.Profile;
+import com.tech.model.Skill;
 import com.tech.model.User;
 import com.tech.repo.*;
 import com.tech.service.ProfileService;
 import com.tech.utils.FollowStatus;
+import com.tech.utils.StringUtils;
 import com.tech.vo.ProfileResponse;
 import com.tech.vo.ResponseResult;
 import com.tech.vo.UserCardResponse;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -27,6 +31,7 @@ import javax.annotation.Resource;
 import javax.net.ssl.SSLContext;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -111,9 +116,75 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public ResponseResult getUserRepos(String username) {
         String url = "https://api.github.com/users/{1}/repos?per_page=5&sort=created:desc&client_id={2}&client_secret={3}";
-
-        ResponseEntity<Object[]> response = restTemplate.getForEntity(url, Object[].class , username, gitHubConfig.getClient_id(), gitHubConfig.getClient_secret());
+        // send http request to GitHub api to fetch repos info
+        ResponseEntity<Object[]> response = restTemplate.getForEntity(url, Object[].class, username, gitHubConfig.getClient_id(), gitHubConfig.getClient_secret());
         String message = response.getStatusCodeValue() == HTTPResponse.SC_OK ? "Fetched GitHub Repos successfully" : "Failed to Fetched GitHub Repos, possible reason: username not found";
         return new ResponseResult(response.getStatusCodeValue(), message, response.getBody());
+    }
+
+    @Override
+    public ResponseResult<Profile> updateUserProfile(ProfileDTO profile) {
+
+        String github = profile.getGithub();
+
+        // validate GitHub info when it's present in request body
+        if (Strings.isNotEmpty(github)) {
+            if (!StringUtils.isValidGitHubUserLink(github) && !StringUtils.isValidGitHubUsername((github))) {
+                throw new IllegalArgumentException("Invalid GitHub user link or username: " + github);
+            }
+        }
+
+        // get user profile, create one if not present in database
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = loginUser.getId();
+
+        // update username when it's present in request body
+        if (Strings.isNotEmpty(profile.getUsername())) {
+            User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
+            user.setUsername(profile.getUsername());
+            userRepository.save(user);
+        }
+
+
+        // fetch user profile
+        Profile profileDB = profileRepository.findByUserId(userId).orElseGet(() ->  new Profile(userId));
+
+        profileDB.setGithub(github);
+        profileDB.setBio(profile.getBio());
+
+        List<Skill> currentSkills = profileDB.getSkills();
+        List<Skill> skillsToAdd = profile.getSkills();
+        if (skillsToAdd.isEmpty()) {
+            currentSkills.clear();
+        } else {
+            List<String> currentSkillNames = currentSkills.stream().map(Skill::getSkillName).toList();
+
+            // new skills are skills that do no present in current Skills
+            List<Skill> newSkills = skillsToAdd.stream().
+                    filter(s -> !currentSkillNames.contains(s.getSkillName())
+                    ).toList();
+
+            // filter out skills duplicated skills
+            List<String> skillToAddNames = skillsToAdd.stream().map(skillToAdd -> skillToAdd.getSkillName()).toList();
+            List<Skill> duplicatedSkills = currentSkills.stream().filter(s -> skillToAddNames.contains(s.getSkillName())).toList();
+
+            // remove skills
+            if (newSkills.size() == 0) {
+                currentSkills.clear();
+                currentSkills.addAll(duplicatedSkills);
+            }
+
+            // add new skills
+            if (newSkills.size() > 0 ){
+                currentSkills.clear();
+                currentSkills.addAll(duplicatedSkills);
+                currentSkills.addAll(newSkills);
+            }
+
+            newSkills.forEach(skill -> skill.setProfile(profileDB));
+        }
+
+        profileRepository.save(profileDB);
+        return new ResponseResult<>(HTTPResponse.SC_OK, "updated profile successfully", profileDB);
     }
 }

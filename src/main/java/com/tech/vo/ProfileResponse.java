@@ -31,5 +31,7 @@ public class ProfileResponse extends BaseRepsonse{
 
     private List<Skill> skills;
 
+    private String github;
+
 
 }
