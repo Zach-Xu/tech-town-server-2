@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 @Setter
 public class GitHubConfig {
 
-    private String client_id;
-
-    private String client_secret;
+    private String access_token;
 
 }

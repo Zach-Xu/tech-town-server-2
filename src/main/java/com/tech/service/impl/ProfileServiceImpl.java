@@ -54,8 +54,6 @@ public class ProfileServiceImpl implements ProfileService {
     @Resource
     private RestTemplate restTemplate;
 
-    @Resource
-    private GitHubConfig gitHubConfig;
 
     @Override
     public ResponseResult<ProfileResponse> getUserProfile(Long userId) {
@@ -115,9 +113,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ResponseResult getUserRepos(String username) {
-        String url = "https://api.github.com/users/{1}/repos?per_page=5&sort=created:desc&client_id={2}&client_secret={3}";
+        String url = "https://api.github.com/users/{1}/repos?per_page=5&sort=created:desc";
         // send http request to GitHub api to fetch repos info
-        ResponseEntity<Object[]> response = restTemplate.getForEntity(url, Object[].class, username, gitHubConfig.getClient_id(), gitHubConfig.getClient_secret());
+        ResponseEntity<Object[]> response = restTemplate.getForEntity(url, Object[].class, username);
         String message = response.getStatusCodeValue() == HTTPResponse.SC_OK ? "Fetched GitHub Repos successfully" : "Failed to Fetched GitHub Repos, possible reason: username not found";
         return new ResponseResult(response.getStatusCodeValue(), message, response.getBody());
     }
