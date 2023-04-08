@@ -69,6 +69,24 @@ public class User extends BaseEntity {
     @JsonIncludeProperties("user")
     private List<Inbox> inboxes;
 
+    @ManyToMany(
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
+            fetch = FetchType.LAZY
+    )
+    @JoinTable(
+            name = "user_bookmark",
+            joinColumns = @JoinColumn(
+                    name = "user_id",
+                    referencedColumnName = "id"
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "question_id",
+                    referencedColumnName = "id"
+            )
+    )
+    @JsonIncludeProperties({"id","title"})
+    private List<Question> bookmarks;
+
     @OneToMany(
             mappedBy = "sender",
             orphanRemoval = true,

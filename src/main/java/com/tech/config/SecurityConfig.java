@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .anonymous()
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/api/questions", "/api/questions/**", "/api/chat/**", "/api/profile/github/{username}")
+                .antMatchers(HttpMethod.GET, "/api/questions", "/api/chat/**", "/api/profile/github/{username}")
                 .permitAll()
                 .anyRequest()
                 .authenticated();

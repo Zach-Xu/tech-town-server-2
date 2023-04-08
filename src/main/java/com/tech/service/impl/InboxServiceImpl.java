@@ -30,9 +30,7 @@ public class InboxServiceImpl implements InboxService {
     @Override
     public ResponseResult<List<Inbox>> getAllInboxes() {
         User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (Objects.isNull(loginUser)) {
-            throw new AuthException("invalid user");
-        }
+
         List<User> participants = new ArrayList<>(Arrays.asList(loginUser));
         Optional<List<Inbox>> inboxes = inboxRepository.findAllByParticipantsIn(participants);
 

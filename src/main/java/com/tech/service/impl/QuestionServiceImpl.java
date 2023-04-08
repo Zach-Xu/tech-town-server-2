@@ -3,8 +3,10 @@ package com.tech.service.impl;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.tech.exception.AuthException;
 import com.tech.exception.NotFoundException;
+import com.tech.model.Inbox;
 import com.tech.model.User;
 import com.tech.model.Vote;
+import com.tech.repo.UserRepository;
 import com.tech.repo.VoteRepository;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
@@ -34,6 +36,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Autowired
     private VoteRepository voteRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Override
     public ResponseResult<List<QuestionResponse>> getAllQuestions() {
         // Fetches the first 20 questions
@@ -42,27 +47,8 @@ public class QuestionServiceImpl implements QuestionService {
         // Extracts the questions from the Page object
         List<Question> questions = questionPage.getContent();
 
-        List<QuestionResponse> questionResponseList = new ArrayList<>();
-
-        // Iterates over each Question object and converts it into a QuestionResponse object
-        questions.forEach(question -> {
-            QuestionResponse questionResponse = new QuestionResponse();
-            UserResponse userResponse = new UserResponse();
-
-            // Copies the properties from the entities to create custom view objects
-            BeanUtils.copyProperties(question, questionResponse);
-            BeanUtils.copyProperties(question.getUser(), userResponse);
-            questionResponse.setUser(userResponse);
-
-            // calculate the votes
-            questionResponse.setVotes(question.getUpVotes() - question.getDownVotes());
-
-            // set the number of answers instead of returning the entire answer object
-            questionResponse.setNumOfAnswers(question.getAnswers().size());
-
-            // Add converted question view objects to the list
-            questionResponseList.add(questionResponse);
-        });
+        // convert list of questions to list of questionResponse
+        List<QuestionResponse> questionResponseList = convertToQuestionResponseList(questions);
 
         return new ResponseResult<>(HTTPResponse.SC_OK, "retrieved first 100 questions", questionResponseList);
     }
@@ -83,7 +69,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseResult<Question> getQuestion(Long questionId) {
+    public ResponseResult<Map<String,Object>> getQuestion(Long questionId) {
         Optional<Question> question = questionRepository.findById(questionId);
         Question updatedQuestion = question.map(q -> {
                     // increase the number of views by 1
@@ -95,7 +81,18 @@ public class QuestionServiceImpl implements QuestionService {
                 })
                 .orElseThrow(() -> new NotFoundException("Question with id " + questionId + " not found"));
 
-        return new ResponseResult<>(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", updatedQuestion);
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+
+        Vote vote = voteRepository.findByQuestionIdAndUserId(questionId, loginUser.getId())
+                .orElseGet(Vote::new);
+
+        Map questionMap = new HashMap();
+        questionMap.put("question", updatedQuestion);
+        questionMap.put("userVoteStatus", vote.getStatus());
+        questionMap.put("isUserBookmarked", questionRepository.existsByIdAndBookmarkedUsersIn(questionId, Arrays.asList(loginUser)));
+
+        return new ResponseResult<>(HTTPResponse.SC_OK, "fetched question with id " + questionId + " successfully", questionMap);
 
     }
 
@@ -202,14 +199,79 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public ResponseResult<Vote> getUserVoteOnQuestion(Long questionId) {
         User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (Objects.isNull(loginUser)) {
-            throw new AuthException("invalid user");
-        }
 
         Optional<Vote> userVoteOnQuestion = voteRepository.findByQuestionIdAndUserId(questionId, loginUser.getId());
         return userVoteOnQuestion.map(vote -> new ResponseResult(HTTPResponse.SC_OK, "fetched vote info successfully", vote))
                 .orElseThrow(() -> new NotFoundException("Vote not found"));
     }
 
+    @Override
+    public ResponseResult<List<QuestionResponse>> getUserBookmarkedQuestions(Long userId) {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user;
+        if (Objects.isNull(userId)) {
+            user = userRepository.findById(loginUser.getId()).orElseThrow(() -> new NotFoundException("User: " + userId + " not found"));
+        } else {
+            user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User: " + userId + " not found"));
+        }
+
+        // convert list of questions to list of questionResponse
+        List<QuestionResponse> questionResponseList = convertToQuestionResponseList(user.getBookmarks());
+        return new ResponseResult<>(HTTPResponse.SC_OK, "Fetched bookmark list successfully", questionResponseList);
+    }
+
+    @Override
+    public ResponseResult bookmarkQuestion(Long questionId) {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findById(loginUser.getId()).orElseThrow(() -> new NotFoundException("Receiver not found"));
+
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new NotFoundException("Question not fo" +
+                "und: " + questionId));
+        question.getBookmarkedUsers().add(user);
+        user.getBookmarks().add(question);
+        questionRepository.save(question);
+        return new ResponseResult(HTTPResponse.SC_OK, "Bookmarked question :" + questionId + " successfully");
+    }
+
+    @Override
+    public ResponseResult unBookmarkQuestion(Long questionId) {
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findById(loginUser.getId()).orElseThrow(() -> new NotFoundException("Receiver not found"));
+
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new NotFoundException("Question not found: " + questionId));
+
+        question.getBookmarkedUsers().removeIf(u -> u.getId().equals(user.getId()));
+
+        user.getBookmarks().removeIf(q -> q.getId().equals(questionId));
+
+        questionRepository.save(question);
+        return new ResponseResult(HTTPResponse.SC_OK, "unBookmarked question :" + questionId + " successfully");
+    }
+
+    @Override
+    public List<QuestionResponse> convertToQuestionResponseList(List<Question> questions) {
+        List<QuestionResponse> questionResponseList = new ArrayList<>();
+
+        questions.forEach(question -> {
+            QuestionResponse questionResponse = new QuestionResponse();
+            UserResponse userResponse = new UserResponse();
+
+            // Copies the properties from the entities to create custom view objects
+            BeanUtils.copyProperties(question, questionResponse);
+            BeanUtils.copyProperties(question.getUser(), userResponse);
+            questionResponse.setUser(userResponse);
+
+            // calculate the votes
+            questionResponse.setVotes(question.getUpVotes() - question.getDownVotes());
+
+            // set the number of answers instead of returning the entire answer object
+            questionResponse.setNumOfAnswers(question.getAnswers().size());
+
+            // Add converted question view objects to the list
+            questionResponseList.add(questionResponse);
+        });
+
+        return questionResponseList;
+    }
 
 }

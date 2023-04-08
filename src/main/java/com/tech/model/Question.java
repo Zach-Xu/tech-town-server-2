@@ -3,6 +3,7 @@ package com.tech.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.Getter;
@@ -32,8 +33,15 @@ public class Question extends BaseEntity {
                     name = "fk_question_user"
             )
     )
-    @JsonIgnoreProperties({"password", "questions", "answers"})
+    @JsonIncludeProperties({"id","username","email","avatar"})
     private User user;
+
+    @ManyToMany(
+            cascade = {CascadeType.ALL},
+            mappedBy = "bookmarks"
+    )
+    @JsonIncludeProperties({"id", "username", "avatar"})
+    private List<User> bookmarkedUsers;
 
     @OneToMany(
             mappedBy = "question",

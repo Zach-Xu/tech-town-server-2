@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -36,7 +37,7 @@ public class QuestionController {
     }
 
     @GetMapping("/{questionId}")
-    public ResponseResult<Question> getQuestion(@PathVariable("questionId") Long questionId){
+    public ResponseResult<Map<String, Object>> getQuestion(@PathVariable("questionId") Long questionId){
         return questionService.getQuestion(questionId);
     }
 
@@ -55,6 +56,20 @@ public class QuestionController {
         return questionService.getUserVoteOnQuestion(questionId);
     }
 
+    @GetMapping("/bookmark")
+    public ResponseResult<List<QuestionResponse>> getBookmarkedQuestions(@RequestParam(name = "userId", required = false) Long userId){
+        return questionService.getUserBookmarkedQuestions(userId);
+    }
+
+    @PostMapping("/bookmark/{questionId}")
+    public ResponseResult bookmarkQuestion(@PathVariable("questionId") Long questionId){
+        return questionService.bookmarkQuestion(questionId);
+    }
+
+    @DeleteMapping("/bookmark/{questionId}")
+    public ResponseResult unBookmarkQuestion(@PathVariable("questionId") Long questionId){
+        return questionService.unBookmarkQuestion(questionId);
+    }
 
 
 }

@@ -3,6 +3,7 @@ package com.tech.model;
 import com.azure.core.annotation.Get;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public class Answer extends BaseEntity {
                     name = "fk_answer_user"
             )
     )
-    @JsonIgnoreProperties({"password", "answers", "questions"})
+    @JsonIncludeProperties({"id","username","email","avatar"})
     private User user;
 
 }
