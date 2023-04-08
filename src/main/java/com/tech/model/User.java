@@ -31,6 +31,9 @@ public class User extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "avatar", columnDefinition = "text comment 'user GitHub avatar url'")
+    private String avatar;
+
     @OneToMany(
             mappedBy = "user",
             orphanRemoval = true,

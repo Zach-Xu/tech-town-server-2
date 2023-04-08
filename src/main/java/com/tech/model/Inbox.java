@@ -19,7 +19,7 @@ public class Inbox extends BaseEntity{
             cascade = {CascadeType.ALL},
             mappedBy = "inboxes"
     )
-    @JsonIncludeProperties({"id","username"})
+    @JsonIncludeProperties({"id","username", "avatar"})
     private List<User> participants;
 
     @OneToMany(

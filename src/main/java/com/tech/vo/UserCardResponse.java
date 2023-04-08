@@ -16,4 +16,6 @@ public class UserCardResponse {
     private int answers;
 
     private boolean isFollowed;
+
+    private String avatar;
 }

@@ -9,6 +9,7 @@ import com.tech.model.Skill;
 import com.tech.model.User;
 import com.tech.repo.*;
 import com.tech.service.ProfileService;
+import com.tech.utils.Constants;
 import com.tech.utils.FollowStatus;
 import com.tech.utils.StringUtils;
 import com.tech.vo.ProfileResponse;
@@ -79,6 +80,7 @@ public class ProfileServiceImpl implements ProfileService {
         profileResponse.setAnswers(answerRepository.countByUser_Id(userId).intValue());
         profileResponse.setFollowers(followRepository.countByUserIdAndStatus(userId, FollowStatus.FOLLOW).intValue());
         profileResponse.setFollowing(followRepository.countByFollowerIdAndStatus(userId, FollowStatus.FOLLOW).intValue());
+        profileResponse.setAvatar(user.getAvatar());
 
         // fetch profile for loggedIn user
         if (loginUser.getId().equals(userId)) {
@@ -100,6 +102,7 @@ public class ProfileServiceImpl implements ProfileService {
         userCardResponse.setFollowers(followRepository.countByUserIdAndStatus(userId, FollowStatus.FOLLOW).intValue());
         userCardResponse.setQuestions(questionRepository.countByUser_Id(userId).intValue());
         userCardResponse.setAnswers(answerRepository.countByUser_Id(userId).intValue());
+        userCardResponse.setAvatar(user.getAvatar());
 
         // fetch user card for loggedIn user
         if (loginUser.getId().equals(userId)) {
@@ -123,18 +126,36 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public ResponseResult<Profile> updateUserProfile(ProfileDTO profile) {
 
+        // get user profile, create one if not present in database
+        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = loginUser.getId();
+
+
         String github = profile.getGithub();
 
         // validate GitHub info when it's present in request body
         if (Strings.isNotEmpty(github)) {
-            if (!StringUtils.isValidGitHubUserLink(github) && !StringUtils.isValidGitHubUsername((github))) {
+            // update user GitHub avatar link
+            if (StringUtils.isValidGitHubUserLink(github)) {
+                userRepository.findById(userId).ifPresent(user -> {
+                    user.setAvatar(Constants.AVATAR_BASE_URL + StringUtils.extractGitHubUsername(github) + ".png");
+                    userRepository.save(user);
+                });
+
+            } else if (StringUtils.isValidGitHubUsername((github))) {
+                userRepository.findById(userId).ifPresent(user -> {
+                    user.setAvatar(Constants.AVATAR_BASE_URL + github + ".png");
+                    userRepository.save(user);
+                });
+            } else {
                 throw new IllegalArgumentException("Invalid GitHub user link or username: " + github);
             }
+        }else{
+            userRepository.findById(userId).ifPresent(user -> {
+                user.setAvatar(null);
+                userRepository.save(user);
+            });
         }
-
-        // get user profile, create one if not present in database
-        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = loginUser.getId();
 
         // update username when it's present in request body
         if (Strings.isNotEmpty(profile.getUsername())) {
@@ -143,9 +164,8 @@ public class ProfileServiceImpl implements ProfileService {
             userRepository.save(user);
         }
 
-
         // fetch user profile
-        Profile profileDB = profileRepository.findByUserId(userId).orElseGet(() ->  new Profile(userId));
+        Profile profileDB = profileRepository.findByUserId(userId).orElseGet(() -> new Profile(userId));
 
         profileDB.setGithub(github);
         profileDB.setBio(profile.getBio());
@@ -173,7 +193,7 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             // add new skills
-            if (newSkills.size() > 0 ){
+            if (newSkills.size() > 0) {
                 currentSkills.clear();
                 currentSkills.addAll(duplicatedSkills);
                 currentSkills.addAll(newSkills);

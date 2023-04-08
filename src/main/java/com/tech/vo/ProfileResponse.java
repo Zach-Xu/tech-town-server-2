@@ -33,5 +33,5 @@ public class ProfileResponse extends BaseRepsonse{
 
     private String github;
 
-
+    private String avatar;
 }

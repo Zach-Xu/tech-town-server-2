@@ -10,4 +10,5 @@ public class UserResponse extends BaseRepsonse{
 
     String  email;
 
+    String avatar;
 }
