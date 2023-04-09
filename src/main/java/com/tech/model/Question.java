@@ -1,10 +1,7 @@
 package com.tech.model;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +48,15 @@ public class Question extends BaseEntity {
     )
     @JsonManagedReference(value = "question-answer")
     private List<Answer> answers;
+
+    @OneToMany(
+            mappedBy = "question",
+            orphanRemoval = true,
+            cascade = {CascadeType.PERSIST,CascadeType.REMOVE},
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private List<Activity> activities;
 
     @OneToMany(
             mappedBy = "question",

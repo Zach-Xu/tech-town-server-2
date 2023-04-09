@@ -34,7 +34,7 @@ public class InboxServiceImpl implements InboxService {
         List<User> participants = new ArrayList<>(Arrays.asList(loginUser));
         Optional<List<Inbox>> inboxes = inboxRepository.findAllByParticipantsIn(participants);
 
-        return new ResponseResult<>(HTTPResponse.SC_OK, "fetched inbox list successfully", inboxes.orElse(new ArrayList<>()));
+        return new ResponseResult<>(HTTPResponse.SC_OK, "fetched inbox list successfully", inboxes.orElseGet(() -> new ArrayList<>()));
     }
 
     @Override

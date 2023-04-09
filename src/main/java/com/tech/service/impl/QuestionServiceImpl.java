@@ -3,17 +3,17 @@ package com.tech.service.impl;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.tech.exception.AuthException;
 import com.tech.exception.NotFoundException;
-import com.tech.model.Inbox;
-import com.tech.model.User;
-import com.tech.model.Vote;
+import com.tech.model.*;
 import com.tech.repo.UserRepository;
 import com.tech.repo.VoteRepository;
+import com.tech.service.ActivityService;
+import com.tech.utils.ActionType;
 import com.tech.vo.QuestionResponse;
 import com.tech.vo.ResponseResult;
-import com.tech.model.Question;
 import com.tech.repo.QuestionRepository;
 import com.tech.service.QuestionService;
 import com.tech.vo.UserResponse;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,6 +38,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ActivityService activityService;
 
     @Override
     public ResponseResult<List<QuestionResponse>> getAllQuestions() {
@@ -65,6 +68,15 @@ public class QuestionServiceImpl implements QuestionService {
         question.setUser(loginUser);
         question.getTags().forEach(tag -> tag.setQuestion(question));
         questionRepository.save(question);
+
+        // create corresponding activity
+        Activity activity = new Activity();
+        // assign values to fields
+        activity.setAction(ActionType.QUESTION);
+        activity.setUserId(loginUser.getId());
+        activity.setQuestion(question);
+        activityService.createActivity(activity);
+
         return new ResponseResult<>(HTTPResponse.SC_CREATED, "created question successfully", question);
     }
 
@@ -119,11 +131,11 @@ public class QuestionServiceImpl implements QuestionService {
                     Optional<Question> votedQuestion = questionRepository.findById(questionId);
                     votedQuestion.map(question -> {
                                 // update the vote status on question based on current and previous vote status
-                                Map<Integer, BiConsumer<Question, Integer>> voteActions = new HashMap<>();
+                                Map<Integer, TriConsumer<Question, Integer, Long>> voteActions = new HashMap<>();
                                 voteActions.put(CANCEL_VOTE, this::cancelVote);
                                 voteActions.put(UP_VOTE, this::upVote);
                                 voteActions.put(DOWN_VOTE, this::downVote);
-                                voteActions.get(currentVoteStatus).accept(question, previousVoteStatus);
+                                voteActions.get(currentVoteStatus).accept(question, previousVoteStatus, loginUser.getId());
 
                                 // update vote status to current
                                 v.setStatus(currentVoteStatus);
@@ -138,7 +150,15 @@ public class QuestionServiceImpl implements QuestionService {
                     questionOnVote.map(question -> {
                                 // no need to cancel previous vote status on question as it's the first time to vote
                                 switch (currentVoteStatus) {
-                                    case UP_VOTE -> question.setUpVotes(question.getUpVotes() + 1);
+                                    case UP_VOTE -> {
+                                        question.setUpVotes(question.getUpVotes() + 1);
+                                        // create up vote activity
+                                        Activity activity = new Activity();
+                                        activity.setQuestion(question);
+                                        activity.setUserId(loginUser.getId());
+                                        activity.setAction(ActionType.VOTE);
+                                        activityService.createActivity(activity);
+                                    }
                                     case DOWN_VOTE -> question.setDownVotes(question.getDownVotes() + 1);
                                     default -> throw new IllegalArgumentException("Invalid vote status");
                                 }
@@ -159,22 +179,33 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public void cancelVote(Question question, int previousVoteStatus) {
+    public void cancelVote(Question question, int previousVoteStatus, Long userId) {
         // current action is cancel, no need to modify votes count in question
 
+        // remove vote activity
+        activityService.deleteVoteActivity(question.getId(), userId);
         this.cancelPreviousVoteAction(question, previousVoteStatus);
     }
 
     @Override
-    public void upVote(Question question, int previousVoteStatus) {
+    public void upVote(Question question, int previousVoteStatus, Long userId) {
         // perform current up vote action
         question.setUpVotes(question.getUpVotes() + 1);
 
+        // create up vote activity
+        Activity activity = new Activity();
+        activity.setQuestion(question);
+        activity.setUserId(userId);
+        activity.setAction(ActionType.VOTE);
+        activityService.createActivity(activity);
         this.cancelPreviousVoteAction(question, previousVoteStatus);
     }
 
     @Override
-    public void downVote(Question question, int previousVoteStatus) {
+    public void downVote(Question question, int previousVoteStatus, Long userId) {
+        // remove vote activity
+        activityService.deleteVoteActivity(question.getId(), userId);
+
         // perform current down vote action
         question.setDownVotes(question.getDownVotes() + 1);
         this.cancelPreviousVoteAction(question, previousVoteStatus);
