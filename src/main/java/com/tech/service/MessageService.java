@@ -11,4 +11,6 @@ public interface MessageService {
     ResponseResult createMessage(MessageDTO messageDTO);
 
     ResponseResult getAllMessagesByInboxId(Long inboxId);
+
+    ResponseResult getInboxById(Long inboxId);
 }

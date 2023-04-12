@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/api/inbox")
-public class MessageController {
+public class InboxController {
 
     @Autowired
     MessageService messageService;
@@ -33,9 +33,14 @@ public class MessageController {
         return messageService.createMessage(messageDTO);
     }
 
-    @GetMapping("/{inboxId}")
+    @GetMapping("/{inboxId}/messages")
     public ResponseResult getAllInboxMessages(@PathVariable("inboxId")Long inboxId){
         return messageService.getAllMessagesByInboxId(inboxId);
+    }
+
+    @GetMapping("/{inboxId}")
+    public ResponseResult getInbox(@PathVariable("inboxId")Long inboxId){
+        return messageService.getInboxById(inboxId);
     }
 
 }

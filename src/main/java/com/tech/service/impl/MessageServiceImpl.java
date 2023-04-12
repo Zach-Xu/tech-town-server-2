@@ -129,4 +129,10 @@ public class MessageServiceImpl implements MessageService {
         return new ResponseResult(HTTPResponse.SC_OK,"Fetched messages successfully" , messages);
 
     }
+
+    @Override
+    public ResponseResult getInboxById(Long inboxId) {
+        Inbox inbox = inboxRepository.findById(inboxId).orElseThrow(() -> new NotFoundException("Inbox with id: " + inboxId + " not found"));
+        return new ResponseResult(HTTPResponse.SC_OK, "Fetch inbox successfully", inbox);
+    }
 }
