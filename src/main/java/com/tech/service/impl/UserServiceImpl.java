@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
         List<Object[]> resultList = userResultPage.getContent();
         // Create a new list to hold the search user responses
         List<SearchUserResponse> searchUserList = new ArrayList<>();
-        
+
         // Iterate over the search results and create a new search user response for each one
         for (Object[] result : resultList) {
             SearchUserResponse searchUserResponse = new SearchUserResponse();
