@@ -27,8 +27,13 @@ public class QuestionController {
     private AnswerService answerService;
 
     @GetMapping
-    public ResponseResult<List<QuestionResponse>> getAllQuestions(){
-        return questionService.getAllQuestions();
+    public ResponseResult<List<QuestionResponse>> getAllQuestions(@RequestParam(required = false) String sort){
+        return questionService.getAllQuestions(sort);
+    }
+
+    @GetMapping("/search")
+    public ResponseResult<List<QuestionResponse>> getSearchQuestion(@RequestParam(required = false) String tag, @RequestParam(required = false) String keyword){
+        return questionService.getSearchQuestion(tag, keyword);
     }
 
     @PostMapping

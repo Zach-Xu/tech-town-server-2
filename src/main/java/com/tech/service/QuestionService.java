@@ -11,7 +11,7 @@ import java.util.Map;
 
 public interface QuestionService {
 
-    ResponseResult<List<QuestionResponse>> getAllQuestions();
+    ResponseResult<List<QuestionResponse>> getAllQuestions(String sort);
 
     ResponseResult<Question> createQuestion(Question question);
 
@@ -36,4 +36,6 @@ public interface QuestionService {
     ResponseResult unBookmarkQuestion(Long questionId);
 
     List<QuestionResponse> convertToQuestionResponseList(List<Question> questions);
+
+    ResponseResult<List<QuestionResponse>> getSearchQuestion(String tag, String keyword);
 }

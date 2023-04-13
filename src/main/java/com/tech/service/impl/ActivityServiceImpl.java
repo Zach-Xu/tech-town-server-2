@@ -27,9 +27,8 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public ResponseResult<List<Activity>> getUserActivities(Long userId) {
-        User loginUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Optional<List<Activity>> activities = activityRepository.findALLByUserId(loginUser.getId());
+        Optional<List<Activity>> activities = activityRepository.findALLByUserIdOrderByCreatedTimeDesc(userId);
         return new ResponseResult<>(HTTPResponse.SC_OK, "Fetched user activities successfully", activities.orElseGet(() -> new ArrayList<>()));
     }
 

@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
-    Optional<List<Activity>> findALLByUserId(Long userId);
+    Optional<List<Activity>> findALLByUserIdOrderByCreatedTimeDesc(Long userId);
 
     int deleteAllByQuestion_IdAndUserIdAndAction(Long questionId, Long userId, ActionType actionType);
 }

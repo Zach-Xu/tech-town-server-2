@@ -13,6 +13,7 @@ import com.tech.vo.ResponseResult;
 import com.tech.repo.QuestionRepository;
 import com.tech.service.QuestionService;
 import com.tech.vo.UserResponse;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +44,15 @@ public class QuestionServiceImpl implements QuestionService {
     private ActivityService activityService;
 
     @Override
-    public ResponseResult<List<QuestionResponse>> getAllQuestions() {
-        // Fetches the first 20 questions
-        Page<Question> questionPage = questionRepository.findAll(PageRequest.ofSize(20));
+    public ResponseResult<List<QuestionResponse>> getAllQuestions(String sort) {
+        Page<Question> questionPage;
+        // questions?sort=views presents in the url
+        if(Strings.isNotEmpty(sort) && sort.equals("views")){
+            questionPage = questionRepository.findAllByOrderByViewsDesc(PageRequest.ofSize(20));
+        }else{
+            // Fetches the latest 20 questions
+            questionPage = questionRepository.findAllByOrderByCreatedTimeDesc(PageRequest.ofSize(20));
+        }
 
         // Extracts the questions from the Page object
         List<Question> questions = questionPage.getContent();
@@ -303,6 +310,29 @@ public class QuestionServiceImpl implements QuestionService {
         });
 
         return questionResponseList;
+    }
+
+    @Override
+    public ResponseResult<List<QuestionResponse>> getSearchQuestion(String tag, String keyword) {
+        Page<Question> questionPage;
+
+        if(Objects.nonNull(tag)){
+            // Fetches the first 20 questions that contains such tags
+            questionPage = questionRepository.findDistinctByTags_TagNameContainsIgnoreCase(tag, PageRequest.ofSize(20));
+        }else if(Objects.nonNull(keyword)){
+            // Fetches the first 20 questions that match the keyword
+            questionPage = questionRepository.findDistinctByTags_TagNameContainsIgnoreCaseOrTitleContainsIgnoreCase(keyword, keyword, PageRequest.ofSize(20));
+        }else{
+            throw new IllegalArgumentException("Please provide at least one search condition");
+        }
+
+        // Extracts the questions from the Page object
+        List<Question> questions = questionPage.getContent();
+
+        // convert list of questions to list of questionResponse
+        List<QuestionResponse> questionResponseList = convertToQuestionResponseList(questions);
+
+        return new ResponseResult<>(HTTPResponse.SC_OK, "fetch search questions successfully", questionResponseList);
     }
 
 }
