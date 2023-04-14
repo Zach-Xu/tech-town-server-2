@@ -15,11 +15,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        env:
+          DB_CONNECTION_STRING: ${{ vars.DB_CONNECTION_STRING }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          OPENAI_KEY: ${{ vars.OPENAI_KEY }}
+          ACCESS_TOKEN: ${{ vars.ACCESS_TOKEN }}
 
       - name: Set up Java version
         uses: actions/setup-java@v1
         with:
           java-version: '17'
+        env:
+          DB_CONNECTION_STRING: ${{ vars.DB_CONNECTION_STRING }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          OPENAI_KEY: ${{ vars.OPENAI_KEY }}
+          ACCESS_TOKEN: ${{ vars.ACCESS_TOKEN }}
 
       - name: Build with Maven
         run: mvn clean install
@@ -46,7 +58,7 @@ jobs:
     runs-on: windows-latest
     needs: build
     environment:
-      name: production
+      name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     env:
           DB_CONNECTION_STRING: ${{ vars.DB_CONNECTION_STRING }}
